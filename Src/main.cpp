@@ -1,7 +1,9 @@
+#include <format>
 #include <iostream>
+#include <memory>
+#include <numeric>
+#include <vector>
 
-int main()
-{
-    std::cout << "Hello, world!\n";
-    return 0;
-}
+#include "unittest.h"
+
+UNIT_TEST_INIT

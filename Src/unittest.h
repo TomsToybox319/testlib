@@ -5,6 +5,18 @@
 #include <memory>
 #include <vector>
 
+#ifdef UNIT_TEST_INIT
+#error "UNIT_TEST_INIT has already been defined!"
+#endif
+
+#ifdef TEST_CASE
+#error "TEST_CASE has already been defined!"
+#endif
+
+#ifdef ASSERT
+#error "ASSERT has already been defined!"
+#endif
+
 namespace testlib
 {
 class test
@@ -15,6 +27,8 @@ class test
   bool Passed = true;
 };
 
+// This contains all the tests, which are implicitly registered in their
+// custructor
 extern std::vector<std::unique_ptr<test>> Tests;
 
 class test_runner
@@ -41,12 +55,22 @@ class test_runner
   std::vector<std::unique_ptr<test>> mTestCases;
   std::ostream& mErrorStream;
 
+  // Test statistics. Run() initializes them as the tests are run.
   size_t mTestsFailed = static_cast<size_t>(-1);
   size_t mTestsRun = static_cast<size_t>(-1);
   size_t mTestsPassed = static_cast<size_t>(-1);
 };
 }  // namespace testlib
 
+// This is where it gets complicated. Each test case is a sub-class of test.
+// We also need to register it by adding it to the Tests vector.
+// This is tricky because we're at top-level scope.
+// The solution is to create a static instance of a struct whose ctor
+// appends an instance of the associated test to the vector.
+// (Maybe at some point a wizard can figure out how we can get this without the
+// extra adding-struct.)
+// Finally, we end with the signature of the run function, so the caller can
+// treat this as a method and write the test afterward
 #define TEST_CASE(TestName)                                                  \
   class testlib_##TestName : public testlib::test                            \
   {                                                                          \
@@ -66,6 +90,10 @@ class test_runner
   }                                                                          \
   void testlib_##TestName::Run()
 
+// Because of how things are called, it doesn't make sense to "return"
+// anything here. Instead we set a member variable to tell whether it
+// passed. In the future, we'll probably need an exception so we can abort
+// execution at the first failure
 #define ASSERT(Expr)                                              \
   if (!(Expr))                                                    \
   {                                                               \
@@ -73,6 +101,7 @@ class test_runner
     std::cerr << #Expr << " failed on line " << __LINE__ << "\n"; \
   }
 
+// This wraps main
 #define UNIT_TEST_INIT                                      \
   namespace testlib                                         \
   {                                                         \

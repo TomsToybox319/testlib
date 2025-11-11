@@ -82,7 +82,7 @@ class test_runner
   {                                                         \
     testlib::test_runner Runner(std::move(testlib::Tests)); \
     Runner.Run();                                           \
-    return Runner.TestsFailed();                            \
+    return static_cast<int>(Runner.TestsFailed());          \
   }
 
 #endif

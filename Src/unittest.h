@@ -22,9 +22,15 @@ namespace testlib
 class test
 {
  public:
+  test(const char* Name) : Name(Name) {}
   virtual ~test() = default;
-  virtual void Run() = 0;
+  void Run(std::ostream& Stream);
+
   bool Passed = true;
+  const char* const Name;
+
+ protected:
+  virtual void RunImpl() = 0;
 };
 
 // This contains all the tests, which are implicitly registered in their
@@ -75,7 +81,8 @@ class test_runner
   class testlib_##TestName : public testlib::test                            \
   {                                                                          \
    public:                                                                   \
-    void Run() override;                                                     \
+    testlib_##TestName() : test(#TestName) {}                                \
+    void RunImpl() override;                                                 \
   };                                                                         \
   namespace                                                                  \
   {                                                                          \
@@ -88,7 +95,7 @@ class test_runner
   };                                                                         \
   static testlib_registrar_##TestName testlib_registrar_instance_##TestName; \
   }                                                                          \
-  void testlib_##TestName::Run()
+  void testlib_##TestName::RunImpl()
 
 // Because of how things are called, it doesn't make sense to "return"
 // anything here. Instead we set a member variable to tell whether it

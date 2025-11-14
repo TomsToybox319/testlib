@@ -1,8 +1,17 @@
 #include "unittest.h"
 
+#include <format>
 #include <numeric>
 
 using namespace testlib;
+
+void test::Run(std::ostream& Stream)
+{
+  Stream << std::format("Running {} - ", Name);
+  RunImpl();
+  const char* const ResultStr = Passed ? "PASSED" : "FAILED";
+  Stream << std::format("{}\n", ResultStr);
+}
 
 bool test_runner::GuardAgainstEmptyTests() const
 {
@@ -33,7 +42,7 @@ bool test_runner::Run()
 
   for (auto& Test : mTestCases)
   {
-    Test->Run();
+    Test->Run(mErrorStream);
     mTestsRun++;
     if (!Test->Passed)
     {

@@ -6,12 +6,16 @@ using namespace testlib;
 
 class this_test_passes : public test
 {
-  void Run() override {}
+ public:
+  this_test_passes() : test("this_test_passes") {}
+  void RunImpl() override {}
 };
 
 class this_test_fails : public test
 {
-  void Run() override { Passed = false; }
+ public:
+  this_test_fails() : test("this_test_fails") {}
+  void RunImpl() override { Passed = false; }
 };
 
 TEST_CASE(Cannot_run_0_tests)
@@ -67,4 +71,17 @@ TEST_CASE(Test_metrics_are_not_valid_before_running_tests)
   ASSERT(Runner.TestsPassed() == static_cast<size_t>(-1));
   ASSERT(Runner.TestsRun() == static_cast<size_t>(-1));
   ASSERT(Runner.TestsFailed() == static_cast<size_t>(-1));
+}
+
+TEST_CASE(Test_reports_name_and_status)
+{
+  this_test_passes PassingTest;
+  std::stringstream ErrorStream;
+  PassingTest.Run(ErrorStream);
+  ASSERT(ErrorStream.str().contains("Running this_test_passes - PASSED"));
+
+  this_test_fails FailingTest;
+  ErrorStream.clear();
+  FailingTest.Run(ErrorStream);
+  ASSERT(ErrorStream.str().contains("Running this_test_fails - FAILED"));
 }

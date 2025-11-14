@@ -4,6 +4,14 @@
 
 using namespace testlib;
 
+void test::Run(std::ostream& Stream)
+{
+  Stream << "Running " << Name << " ";
+  RunImpl();
+  Stream << "- ";
+  Stream << (Passed ? "PASSED" : "FAILED") << std::endl;
+}
+
 bool test_runner::GuardAgainstEmptyTests() const
 {
   const bool RunnerHasTests = !mTestCases.empty();
@@ -33,7 +41,7 @@ bool test_runner::Run()
 
   for (auto& Test : mTestCases)
   {
-    Test->Run();
+    Test->Run(mErrorStream);
     mTestsRun++;
     if (!Test->Passed)
     {

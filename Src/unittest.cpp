@@ -1,15 +1,16 @@
 #include "unittest.h"
 
+#include <format>
 #include <numeric>
 
 using namespace testlib;
 
 void test::Run(std::ostream& Stream)
 {
-  Stream << "Running " << Name << " ";
+  Stream << std::format("Running {} - ", Name);
   RunImpl();
-  Stream << "- ";
-  Stream << (Passed ? "PASSED" : "FAILED") << std::endl;
+  const char* const ResultStr = Passed ? "PASSED" : "FAILED";
+  Stream << std::format("{}\n", ResultStr);
 }
 
 bool test_runner::GuardAgainstEmptyTests() const

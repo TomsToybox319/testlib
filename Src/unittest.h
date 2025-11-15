@@ -69,6 +69,7 @@ class test_runner
 
  private:
   bool GuardAgainstEmptyTests() const;
+  void RunSingleTest(test& Test);
   std::vector<std::unique_ptr<test>> mTestCases;
   std::ostream& mErrorStream;
 

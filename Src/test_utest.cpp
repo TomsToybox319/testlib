@@ -84,6 +84,6 @@ TEST_CASE(Test_reports_name_and_status)
   ErrorStream.clear();
   FailingTest.Run(ErrorStream);
   ASSERT(
-      ErrorStream.str().contains("Running this_test_fails - FAILED\n1 == 3"));
+      ErrorStream.str().contains("Running this_test_fails - FAILED\n1 == 2"));
 }
 

@@ -8,14 +8,14 @@ class this_test_passes : public test
 {
  public:
   this_test_passes() : test("this_test_passes", __FILE__) {}
-  void RunImpl() override {}
+  void RunImpl() const override {}
 };
 
 class this_test_fails : public test
 {
  public:
   this_test_fails() : test("this_test_fails", __FILE__) {}
-  void RunImpl() override
+  void RunImpl() const override
   {
     ASSERT(1 == 2);
     ASSERT(2 == 3);

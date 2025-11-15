@@ -9,7 +9,15 @@ using namespace testlib;
 void test::Run(std::ostream& Stream)
 {
   std::stringstream TestStream;
-  RunImpl(TestStream);
+  try
+  {
+    RunImpl();
+  }
+  catch (const assertion_error& Error)
+  {
+    Passed = false;
+    TestStream << std::format("{} failed on line {}\n", Error.Expr, Error.Line);
+  }
 
   const char* const ResultStr = Passed ? "PASSED" : "FAILED";
   Stream << std::format("{}::{} - {}\n", Filename, Name, ResultStr);

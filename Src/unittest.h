@@ -33,7 +33,15 @@ class test
   const char* const Filename;
 
  protected:
-  virtual void RunImpl(std::ostream&) = 0;
+  virtual void RunImpl() = 0;
+};
+
+class assertion_error
+{
+ public:
+  assertion_error(const char* Expr, int Line) : Expr(Expr), Line(Line) {}
+  const char* const Expr;
+  const int Line;
 };
 
 // This contains all the tests, which are implicitly registered in their
@@ -85,7 +93,7 @@ class test_runner
   {                                                                          \
    public:                                                                   \
     testlib_##TestName() : test(#TestName, __FILE__) {}                      \
-    void RunImpl(std::ostream&) override;                                    \
+    void RunImpl() override;                                                 \
   };                                                                         \
   namespace                                                                  \
   {                                                                          \
@@ -98,17 +106,16 @@ class test_runner
   };                                                                         \
   static testlib_registrar_##TestName testlib_registrar_instance_##TestName; \
   }                                                                          \
-  void testlib_##TestName::RunImpl(std::ostream& TestImpl_Stream)
+  void testlib_##TestName::RunImpl()
 
 // Because of how things are called, it doesn't make sense to "return"
 // anything here. Instead we set a member variable to tell whether it
 // passed. In the future, we'll probably need an exception so we can abort
 // execution at the first failure
-#define ASSERT(Expr)                                                    \
-  if (!(Expr))                                                          \
-  {                                                                     \
-    Passed = false;                                                     \
-    TestImpl_Stream << #Expr << " failed on line " << __LINE__ << "\n"; \
+#define ASSERT(Expr)                        \
+  if (!(Expr))                              \
+  {                                         \
+    throw assertion_error(#Expr, __LINE__); \
   }
 
 // This wraps main

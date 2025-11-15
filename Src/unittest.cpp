@@ -3,7 +3,6 @@
 #include <cassert>
 #include <format>
 #include <numeric>
-#include <sstream>
 
 using namespace testlib;
 
@@ -27,22 +26,14 @@ test::result test::Run() const
   return {Passed, Message};
 }
 
-bool test_runner::GuardAgainstEmptyTests() const
-{
-  const bool RunnerHasTests = !mTestCases.empty();
-  if (!RunnerHasTests) mErrorStream << ZERO_TESTS_ERROR_MSG << std::endl;
-  return RunnerHasTests;
-}
-
 std::string test_runner::WriteReport() const
 {
-  return std::format("Passed {}/{} tests", TestsPassed(), TestsRun());
+  return std::format("Passed {}/{} tests\n", TestsPassed(), TestsRun());
 }
 
-void test_runner::RunSingleTest(const test& Test)
+test_runner::result test_runner::RunSingleTest(const test& Test)
 {
   const auto [Passed, Message] = Test.Run();
-  mErrorStream << Message;
 
   mTestsRun++;
   if (Passed)
@@ -53,22 +44,24 @@ void test_runner::RunSingleTest(const test& Test)
   {
     mTestsFailed++;
   }
+  return {Passed, Message};
 }
 
-bool test_runner::Run()
+test_runner::result test_runner::Run()
 {
-  if (!GuardAgainstEmptyTests()) return false;
+  const auto GuardResult = GuardAgainstEmptyTests();
+  if (!GuardResult.Passed) return GuardResult;
 
   mTestsRun = 0;
   mTestsFailed = 0;
   mTestsPassed = 0;
 
+  result Result = {true, ""};
   for (const auto& Test : mTestCases)
   {
     assert(Test.get() != nullptr);
-    RunSingleTest(*Test);
+    Result = Result + RunSingleTest(*Test);
   }
 
-  mErrorStream << WriteReport() << "\n";
-  return mTestsFailed == 0;
+  return {mTestsFailed == 0, Result.Message + WriteReport()};
 }

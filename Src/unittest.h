@@ -57,16 +57,25 @@ extern std::vector<std::unique_ptr<test>> Tests;
 class test_runner
 {
  public:
-  static constexpr const char ZERO_TESTS_ERROR_MSG[] =
-      "TestRunner found no tests to run.";
+  struct result
+  {
+    bool Passed;
+    std::string Message;
 
-  constexpr test_runner(std::vector<std::unique_ptr<test>>&& TestCases,
-                        std::ostream& ErrorStream = std::cerr)
-      : mTestCases(std::move(TestCases)), mErrorStream(ErrorStream)
+    constexpr result operator+(const result& Rhs)
+    {
+      return {Passed && Rhs.Passed, Message + Rhs.Message};
+    }
+  };
+  static constexpr const char ZERO_TESTS_ERROR_MSG[] =
+      "TestRunner found no tests to run.\n";
+
+  constexpr test_runner(std::vector<std::unique_ptr<test>>&& TestCases)
+      : mTestCases(std::move(TestCases))
   {
   }
 
-  bool Run();
+  result Run();
   std::string WriteReport() const;
 
   constexpr size_t TestsPassed() const { return mTestsPassed; }
@@ -74,10 +83,14 @@ class test_runner
   constexpr size_t TestsRun() const { return mTestsRun; }
 
  private:
-  bool GuardAgainstEmptyTests() const;
-  void RunSingleTest(const test& Test);
+  constexpr result GuardAgainstEmptyTests() const
+  {
+    const bool RunnerHasTests = !mTestCases.empty();
+    return RunnerHasTests ? result{true, ""}
+                          : result{false, ZERO_TESTS_ERROR_MSG};
+  }
+  result RunSingleTest(const test& Test);
   std::vector<std::unique_ptr<test>> mTestCases;
-  std::ostream& mErrorStream;
 
   // Test statistics. Run() initializes them as the tests are run.
   size_t mTestsFailed = static_cast<size_t>(-1);
@@ -134,7 +147,8 @@ class test_runner
   int main()                                                \
   {                                                         \
     testlib::test_runner Runner(std::move(testlib::Tests)); \
-    Runner.Run();                                           \
+    const auto Report = Runner.Run();                       \
+    std::cerr << Report.Message << "\n";                    \
     return static_cast<int>(Runner.TestsFailed());          \
   }
 

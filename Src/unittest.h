@@ -26,14 +26,13 @@ class test
   {
   }
   virtual ~test() = default;
-  void Run(std::ostream& Stream);
+  bool Run(std::ostream& Stream) const;
 
-  bool Passed = true;
   const char* const Name;
   const char* const Filename;
 
  protected:
-  virtual void RunImpl() = 0;
+  virtual void RunImpl() const = 0;
 };
 
 class assertion_error
@@ -69,6 +68,7 @@ class test_runner
 
  private:
   bool GuardAgainstEmptyTests() const;
+  void RunSingleTest(const test& Test);
   std::vector<std::unique_ptr<test>> mTestCases;
   std::ostream& mErrorStream;
 
@@ -93,7 +93,7 @@ class test_runner
   {                                                                          \
    public:                                                                   \
     testlib_##TestName() : test(#TestName, __FILE__) {}                      \
-    void RunImpl() override;                                                 \
+    void RunImpl() const override;                                           \
   };                                                                         \
   namespace                                                                  \
   {                                                                          \
@@ -106,7 +106,7 @@ class test_runner
   };                                                                         \
   static testlib_registrar_##TestName testlib_registrar_instance_##TestName; \
   }                                                                          \
-  void testlib_##TestName::RunImpl()
+  void testlib_##TestName::RunImpl() const
 
 // Because of how things are called, it doesn't make sense to "return"
 // anything here. Instead we set a member variable to tell whether it

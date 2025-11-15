@@ -1,14 +1,17 @@
 #include "unittest.h"
 
+#include <cassert>
 #include <format>
 #include <numeric>
 #include <sstream>
 
 using namespace testlib;
 
-void test::Run(std::ostream& Stream)
+bool test::Run(std::ostream& Stream) const
 {
-  std::stringstream TestStream;
+  std::string Message{};
+  bool Passed = true;
+
   try
   {
     RunImpl();
@@ -16,12 +19,12 @@ void test::Run(std::ostream& Stream)
   catch (const assertion_error& Error)
   {
     Passed = false;
-    TestStream << std::format("{} failed on line {}\n", Error.Expr, Error.Line);
+    Message = std::format("{} failed on line {}\n", Error.Expr, Error.Line);
   }
 
   const char* const ResultStr = Passed ? "PASSED" : "FAILED";
-  Stream << std::format("{}::{} - {}\n", Filename, Name, ResultStr);
-  Stream << TestStream.str();
+  Stream << std::format("{}::{} - {}\n{}", Filename, Name, ResultStr, Message);
+  return Passed;
 }
 
 bool test_runner::GuardAgainstEmptyTests() const
@@ -42,30 +45,35 @@ size_t test_runner::TestsFailed() const { return mTestsFailed; }
 
 size_t test_runner::TestsRun() const { return mTestsRun; }
 
+void test_runner::RunSingleTest(const test& Test)
+{
+  const bool Passed = Test.Run(mErrorStream);
+
+  mTestsRun++;
+  if (Passed)
+  {
+    mTestsPassed++;
+  }
+  else
+  {
+    mTestsFailed++;
+  }
+}
+
 bool test_runner::Run()
 {
   if (!GuardAgainstEmptyTests()) return false;
 
-  bool Result = true;
   mTestsRun = 0;
   mTestsFailed = 0;
   mTestsPassed = 0;
 
-  for (auto& Test : mTestCases)
+  for (const auto& Test : mTestCases)
   {
-    Test->Run(mErrorStream);
-    mTestsRun++;
-    if (!Test->Passed)
-    {
-      Result = false;
-      mTestsFailed++;
-    }
-    else
-    {
-      mTestsPassed++;
-    }
+    assert(Test.get() != nullptr);
+    RunSingleTest(*Test);
   }
 
   mErrorStream << WriteReport() << "\n";
-  return Result;
+  return mTestsFailed == 0;
 }

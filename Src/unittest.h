@@ -22,12 +22,15 @@ namespace testlib
 class test
 {
  public:
-  test(const char* Name) : Name(Name) {}
+  test(const char* Name, const char* Filename) : Name(Name), Filename(Filename)
+  {
+  }
   virtual ~test() = default;
   void Run(std::ostream& Stream);
 
   bool Passed = true;
   const char* const Name;
+  const char* const Filename;
 
  protected:
   virtual void RunImpl(std::ostream&) = 0;
@@ -81,7 +84,7 @@ class test_runner
   class testlib_##TestName : public testlib::test                            \
   {                                                                          \
    public:                                                                   \
-    testlib_##TestName() : test(#TestName) {}                                \
+    testlib_##TestName() : test(#TestName, __FILE__) {}                      \
     void RunImpl(std::ostream&) override;                                    \
   };                                                                         \
   namespace                                                                  \

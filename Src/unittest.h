@@ -30,7 +30,7 @@ class test
   const char* const Name;
 
  protected:
-  virtual void RunImpl() = 0;
+  virtual void RunImpl(std::ostream&) = 0;
 };
 
 // This contains all the tests, which are implicitly registered in their
@@ -82,7 +82,7 @@ class test_runner
   {                                                                          \
    public:                                                                   \
     testlib_##TestName() : test(#TestName) {}                                \
-    void RunImpl() override;                                                 \
+    void RunImpl(std::ostream&) override;                                    \
   };                                                                         \
   namespace                                                                  \
   {                                                                          \
@@ -95,17 +95,17 @@ class test_runner
   };                                                                         \
   static testlib_registrar_##TestName testlib_registrar_instance_##TestName; \
   }                                                                          \
-  void testlib_##TestName::RunImpl()
+  void testlib_##TestName::RunImpl(std::ostream& TestImpl_Stream)
 
 // Because of how things are called, it doesn't make sense to "return"
 // anything here. Instead we set a member variable to tell whether it
 // passed. In the future, we'll probably need an exception so we can abort
 // execution at the first failure
-#define ASSERT(Expr)                                              \
-  if (!(Expr))                                                    \
-  {                                                               \
-    Passed = false;                                               \
-    std::cerr << #Expr << " failed on line " << __LINE__ << "\n"; \
+#define ASSERT(Expr)                                                    \
+  if (!(Expr))                                                          \
+  {                                                                     \
+    Passed = false;                                                     \
+    TestImpl_Stream << #Expr << " failed on line " << __LINE__ << "\n"; \
   }
 
 // This wraps main

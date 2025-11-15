@@ -8,14 +8,14 @@ class this_test_passes : public test
 {
  public:
   this_test_passes() : test("this_test_passes") {}
-  void RunImpl() override {}
+  void RunImpl(std::ostream&) override {}
 };
 
 class this_test_fails : public test
 {
  public:
   this_test_fails() : test("this_test_fails") {}
-  void RunImpl() override { Passed = false; }
+  void RunImpl(std::ostream& TestImpl_Stream) override { ASSERT(1 == 2); }
 };
 
 TEST_CASE(Cannot_run_0_tests)
@@ -83,5 +83,7 @@ TEST_CASE(Test_reports_name_and_status)
   this_test_fails FailingTest;
   ErrorStream.clear();
   FailingTest.Run(ErrorStream);
-  ASSERT(ErrorStream.str().contains("Running this_test_fails - FAILED"));
+  ASSERT(
+      ErrorStream.str().contains("Running this_test_fails - FAILED\n1 == 3"));
 }
+

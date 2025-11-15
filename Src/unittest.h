@@ -22,17 +22,24 @@ namespace testlib
 class test
 {
  public:
-  test(const char* Name, const char* Filename) : Name(Name), Filename(Filename)
+  struct result
+  {
+    const bool Passed;
+    const std::string Message;
+  };
+
+  constexpr test(const char* Name, const char* Filename)
+      : Name(Name), Filename(Filename)
   {
   }
-  virtual ~test() = default;
-  bool Run(std::ostream& Stream) const;
+  constexpr virtual ~test() = default;
+  result Run() const;
 
   const char* const Name;
   const char* const Filename;
 
  protected:
-  virtual void RunImpl() const = 0;
+  constexpr virtual void RunImpl() const = 0;
 };
 
 class assertion_error
@@ -53,8 +60,8 @@ class test_runner
   static constexpr const char ZERO_TESTS_ERROR_MSG[] =
       "TestRunner found no tests to run.";
 
-  test_runner(std::vector<std::unique_ptr<test>>&& TestCases,
-              std::ostream& ErrorStream = std::cerr)
+  constexpr test_runner(std::vector<std::unique_ptr<test>>&& TestCases,
+                        std::ostream& ErrorStream = std::cerr)
       : mTestCases(std::move(TestCases)), mErrorStream(ErrorStream)
   {
   }
@@ -62,9 +69,9 @@ class test_runner
   bool Run();
   std::string WriteReport() const;
 
-  size_t TestsPassed() const;
-  size_t TestsFailed() const;
-  size_t TestsRun() const;
+  constexpr size_t TestsPassed() const { return mTestsPassed; }
+  constexpr size_t TestsFailed() const { return mTestsFailed; }
+  constexpr size_t TestsRun() const { return mTestsRun; }
 
  private:
   bool GuardAgainstEmptyTests() const;
@@ -92,14 +99,14 @@ class test_runner
   class testlib_##TestName : public testlib::test                            \
   {                                                                          \
    public:                                                                   \
-    testlib_##TestName() : test(#TestName, __FILE__) {}                      \
+    constexpr testlib_##TestName() : test(#TestName, __FILE__) {}            \
     void RunImpl() const override;                                           \
   };                                                                         \
   namespace                                                                  \
   {                                                                          \
   struct testlib_registrar_##TestName                                        \
   {                                                                          \
-    testlib_registrar_##TestName()                                           \
+    constexpr testlib_registrar_##TestName()                                 \
     {                                                                        \
       testlib::Tests.push_back(std::make_unique<testlib_##TestName>());      \
     }                                                                        \

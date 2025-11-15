@@ -7,7 +7,7 @@
 
 using namespace testlib;
 
-bool test::Run(std::ostream& Stream) const
+test::result test::Run() const
 {
   std::string Message{};
   bool Passed = true;
@@ -23,8 +23,8 @@ bool test::Run(std::ostream& Stream) const
   }
 
   const char* const ResultStr = Passed ? "PASSED" : "FAILED";
-  Stream << std::format("{}::{} - {}\n{}", Filename, Name, ResultStr, Message);
-  return Passed;
+  Message = std::format("{}::{} - {}\n{}", Filename, Name, ResultStr, Message);
+  return {Passed, Message};
 }
 
 bool test_runner::GuardAgainstEmptyTests() const
@@ -39,15 +39,10 @@ std::string test_runner::WriteReport() const
   return std::format("Passed {}/{} tests", TestsPassed(), TestsRun());
 }
 
-size_t test_runner::TestsPassed() const { return mTestsPassed; }
-
-size_t test_runner::TestsFailed() const { return mTestsFailed; }
-
-size_t test_runner::TestsRun() const { return mTestsRun; }
-
 void test_runner::RunSingleTest(const test& Test)
 {
-  const bool Passed = Test.Run(mErrorStream);
+  const auto [Passed, Message] = Test.Run();
+  mErrorStream << Message;
 
   mTestsRun++;
   if (Passed)

@@ -7,14 +7,14 @@ using namespace testlib;
 class this_test_passes : public test
 {
  public:
-  this_test_passes() : test("this_test_passes", __FILE__) {}
-  void RunImpl() const override {}
+  constexpr this_test_passes() : test("this_test_passes", __FILE__) {}
+  constexpr void RunImpl() const override {}
 };
 
 class this_test_fails : public test
 {
  public:
-  this_test_fails() : test("this_test_fails", __FILE__) {}
+  constexpr this_test_fails() : test("this_test_fails", __FILE__) {}
   void RunImpl() const override
   {
     ASSERT(1 == 2);
@@ -79,26 +79,26 @@ TEST_CASE(Test_metrics_are_not_valid_before_running_tests)
 
 TEST_CASE(Test_reports_name_and_status)
 {
-  this_test_passes PassingTest;
-  std::stringstream ErrorStream;
-  PassingTest.Run(ErrorStream);
-  ASSERT(
-      ErrorStream.str().contains("test_utest.cpp::this_test_passes - PASSED"));
-
-  this_test_fails FailingTest;
-  ErrorStream.clear();
-  FailingTest.Run(ErrorStream);
-  ASSERT(ErrorStream.str().contains(
-      "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));
+  {
+    const this_test_passes PassingTest;
+    const auto Result = PassingTest.Run();
+    ASSERT(
+        Result.Message.contains("test_utest.cpp::this_test_passes - PASSED"));
+  }
+  {
+    const this_test_fails FailingTest;
+    const auto Result = FailingTest.Run();
+    ASSERT(Result.Message.contains(
+        "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));
+  }
 }
 
 TEST_CASE(Test_only_reports_first_failure)
 {
-  this_test_fails FailingTest;
-  std::stringstream ErrorStream;
-  FailingTest.Run(ErrorStream);
-  ASSERT(ErrorStream.str().contains(
+  const this_test_fails FailingTest;
+  const auto Result = FailingTest.Run();
+  ASSERT(Result.Message.contains(
       "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));
-  ASSERT(!ErrorStream.str().contains("2 == 3"));
+  ASSERT(!Result.Message.contains("2 == 3"));
 }
 

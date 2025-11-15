@@ -2,15 +2,18 @@
 
 #include <format>
 #include <numeric>
+#include <sstream>
 
 using namespace testlib;
 
 void test::Run(std::ostream& Stream)
 {
-  Stream << std::format("Running {} - ", Name);
-  RunImpl();
+  std::stringstream TestStream;
+  RunImpl(TestStream);
+
   const char* const ResultStr = Passed ? "PASSED" : "FAILED";
-  Stream << std::format("{}\n", ResultStr);
+  Stream << std::format("Running {} - {}\n", Name, ResultStr);
+  Stream << TestStream.str();
 }
 
 bool test_runner::GuardAgainstEmptyTests() const

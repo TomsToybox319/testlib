@@ -7,14 +7,14 @@ using namespace testlib;
 class this_test_passes : public test
 {
  public:
-  this_test_passes() : test("this_test_passes") {}
+  this_test_passes() : test("this_test_passes", __FILE__) {}
   void RunImpl(std::ostream&) override {}
 };
 
 class this_test_fails : public test
 {
  public:
-  this_test_fails() : test("this_test_fails") {}
+  this_test_fails() : test("this_test_fails", __FILE__) {}
   void RunImpl(std::ostream& TestImpl_Stream) override { ASSERT(1 == 2); }
 };
 
@@ -78,12 +78,13 @@ TEST_CASE(Test_reports_name_and_status)
   this_test_passes PassingTest;
   std::stringstream ErrorStream;
   PassingTest.Run(ErrorStream);
-  ASSERT(ErrorStream.str().contains("Running this_test_passes - PASSED"));
+  ASSERT(
+      ErrorStream.str().contains("test_utest.cpp::this_test_passes - PASSED"));
 
   this_test_fails FailingTest;
   ErrorStream.clear();
   FailingTest.Run(ErrorStream);
-  ASSERT(
-      ErrorStream.str().contains("Running this_test_fails - FAILED\n1 == 2"));
+  ASSERT(ErrorStream.str().contains(
+      "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));
 }
 

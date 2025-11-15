@@ -12,7 +12,7 @@ void test::Run(std::ostream& Stream)
   RunImpl(TestStream);
 
   const char* const ResultStr = Passed ? "PASSED" : "FAILED";
-  Stream << std::format("Running {} - {}\n", Name, ResultStr);
+  Stream << std::format("{}::{} - {}\n", Filename, Name, ResultStr);
   Stream << TestStream.str();
 }
 

@@ -3,11 +3,35 @@
 #include <cassert>
 #include <format>
 #include <numeric>
-#include <sstream>
 
 using namespace testlib;
 
-bool test::Run(std::ostream& Stream) const
+namespace
+{
+
+constexpr test_runner::result GuardAgainstEmptyTests(
+    const std::vector<std::unique_ptr<test>>& TestCases)
+{
+  return TestCases.empty() ? test_runner::result(
+                                 false, test_runner::ZERO_TESTS_ERROR_MSG, 0, 0)
+                           : test_runner::result();
+}
+
+std::string WriteReport(const test_runner::result& Result)
+{
+  return std::format("Passed {}/{} tests\n", Result.TestsPassed,
+                     Result.TestsRun());
+}
+
+constexpr test_runner::result Finalize(const test_runner::result& Result)
+{
+  test_runner::result FinalResult = Result;
+  FinalResult.Message += WriteReport(Result);
+  return FinalResult;
+}
+}  // namespace
+
+test::result test::Run() const
 {
   std::string Message{};
   bool Passed = true;
@@ -23,57 +47,19 @@ bool test::Run(std::ostream& Stream) const
   }
 
   const char* const ResultStr = Passed ? "PASSED" : "FAILED";
-  Stream << std::format("{}::{} - {}\n{}", Filename, Name, ResultStr, Message);
-  return Passed;
+  Message = std::format("{}::{} - {}\n{}", Filename, Name, ResultStr, Message);
+  return {Passed, Message};
 }
 
-bool test_runner::GuardAgainstEmptyTests() const
+test_runner::result test_runner::Run()
 {
-  const bool RunnerHasTests = !mTestCases.empty();
-  if (!RunnerHasTests) mErrorStream << ZERO_TESTS_ERROR_MSG << std::endl;
-  return RunnerHasTests;
-}
+  const auto GuardResult = GuardAgainstEmptyTests(mTestCases);
+  if (!GuardResult.Passed) return GuardResult;
 
-std::string test_runner::WriteReport() const
-{
-  return std::format("Passed {}/{} tests", TestsPassed(), TestsRun());
-}
+  const auto Result = std::accumulate(
+      mTestCases.begin(), mTestCases.end(), result(),
+      [](const result& Result, const std::unique_ptr<test>& Test)
+      { return Result + Test->Run(); });
 
-size_t test_runner::TestsPassed() const { return mTestsPassed; }
-
-size_t test_runner::TestsFailed() const { return mTestsFailed; }
-
-size_t test_runner::TestsRun() const { return mTestsRun; }
-
-void test_runner::RunSingleTest(const test& Test)
-{
-  const bool Passed = Test.Run(mErrorStream);
-
-  mTestsRun++;
-  if (Passed)
-  {
-    mTestsPassed++;
-  }
-  else
-  {
-    mTestsFailed++;
-  }
-}
-
-bool test_runner::Run()
-{
-  if (!GuardAgainstEmptyTests()) return false;
-
-  mTestsRun = 0;
-  mTestsFailed = 0;
-  mTestsPassed = 0;
-
-  for (const auto& Test : mTestCases)
-  {
-    assert(Test.get() != nullptr);
-    RunSingleTest(*Test);
-  }
-
-  mErrorStream << WriteReport() << "\n";
-  return mTestsFailed == 0;
+  return Finalize(Result);
 }

@@ -22,17 +22,24 @@ namespace testlib
 class test
 {
  public:
-  test(const char* Name, const char* Filename) : Name(Name), Filename(Filename)
+  struct result
+  {
+    const bool Passed;
+    const std::string Message;
+  };
+
+  constexpr test(const char* Name, const char* Filename)
+      : Name(Name), Filename(Filename)
   {
   }
-  virtual ~test() = default;
-  bool Run(std::ostream& Stream) const;
+  constexpr virtual ~test() = default;
+  result Run() const;
 
   const char* const Name;
   const char* const Filename;
 
  protected:
-  virtual void RunImpl() const = 0;
+  constexpr virtual void RunImpl() const = 0;
 };
 
 class assertion_error
@@ -50,32 +57,58 @@ extern std::vector<std::unique_ptr<test>> Tests;
 class test_runner
 {
  public:
-  static constexpr const char ZERO_TESTS_ERROR_MSG[] =
-      "TestRunner found no tests to run.";
+  struct result
+  {
+    bool Passed;
+    std::string Message;
+    size_t TestsFailed = 0;
+    size_t TestsPassed = 0;
+    constexpr size_t TestsRun() const { return TestsFailed + TestsPassed; }
 
-  test_runner(std::vector<std::unique_ptr<test>>&& TestCases,
-              std::ostream& ErrorStream = std::cerr)
-      : mTestCases(std::move(TestCases)), mErrorStream(ErrorStream)
+    constexpr result() : Passed(true) {}
+
+    // Convert test:;result (individual) to test_runner::result (aggregate)
+    constexpr result(const test::result& Rhs)
+        : Passed(Rhs.Passed),
+          Message(Rhs.Message),
+          TestsFailed(!Rhs.Passed),
+          TestsPassed(Rhs.Passed)
+    {
+    }
+
+    constexpr result(bool Passed, std::string Message, size_t TestsFailed,
+                     size_t TestsPassed)
+        : Passed(Passed),
+          Message(Message),
+          TestsFailed(TestsFailed),
+          TestsPassed(TestsPassed)
+    {
+    }
+
+    constexpr result operator+(const result& Rhs) const
+    {
+      return result(Passed && Rhs.Passed, Message + Rhs.Message,
+                    TestsFailed + Rhs.TestsFailed,
+                    TestsPassed + Rhs.TestsPassed);
+    }
+
+    constexpr result operator+(const test::result& Rhs) const
+    {
+      return *this + result(Rhs);
+    }
+  };
+  static constexpr const char ZERO_TESTS_ERROR_MSG[] =
+      "TestRunner found no tests to run.\n";
+
+  constexpr test_runner(std::vector<std::unique_ptr<test>>&& TestCases)
+      : mTestCases(std::move(TestCases))
   {
   }
 
-  bool Run();
-  std::string WriteReport() const;
-
-  size_t TestsPassed() const;
-  size_t TestsFailed() const;
-  size_t TestsRun() const;
+  result Run();
 
  private:
-  bool GuardAgainstEmptyTests() const;
-  void RunSingleTest(const test& Test);
   std::vector<std::unique_ptr<test>> mTestCases;
-  std::ostream& mErrorStream;
-
-  // Test statistics. Run() initializes them as the tests are run.
-  size_t mTestsFailed = static_cast<size_t>(-1);
-  size_t mTestsRun = static_cast<size_t>(-1);
-  size_t mTestsPassed = static_cast<size_t>(-1);
 };
 }  // namespace testlib
 
@@ -92,14 +125,14 @@ class test_runner
   class testlib_##TestName : public testlib::test                            \
   {                                                                          \
    public:                                                                   \
-    testlib_##TestName() : test(#TestName, __FILE__) {}                      \
+    constexpr testlib_##TestName() : test(#TestName, __FILE__) {}            \
     void RunImpl() const override;                                           \
   };                                                                         \
   namespace                                                                  \
   {                                                                          \
   struct testlib_registrar_##TestName                                        \
   {                                                                          \
-    testlib_registrar_##TestName()                                           \
+    constexpr testlib_registrar_##TestName()                                 \
     {                                                                        \
       testlib::Tests.push_back(std::make_unique<testlib_##TestName>());      \
     }                                                                        \
@@ -127,8 +160,9 @@ class test_runner
   int main()                                                \
   {                                                         \
     testlib::test_runner Runner(std::move(testlib::Tests)); \
-    Runner.Run();                                           \
-    return static_cast<int>(Runner.TestsFailed());          \
+    const auto Report = Runner.Run();                       \
+    std::cerr << Report.Message << "\n";                    \
+    return static_cast<int>(Report.TestsFailed);            \
   }
 
 #endif

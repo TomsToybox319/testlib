@@ -21,7 +21,7 @@ class this_test_fails : public test
   }
 };
 
-TEST_CASE(Cannot_run_0_tests)
+TEST(Cannot_run_0_tests)
 {
   test_runner Runner({});
 
@@ -31,7 +31,7 @@ TEST_CASE(Cannot_run_0_tests)
   ASSERT(Result.Message.contains(test_runner::ZERO_TESTS_ERROR_MSG));
 }
 
-TEST_CASE(Can_run_mulitple_passing_tests)
+TEST(Can_run_mulitple_passing_tests)
 {
   std::vector<std::unique_ptr<test>> TestCases;
   TestCases.push_back(std::make_unique<this_test_passes>());
@@ -44,7 +44,7 @@ TEST_CASE(Can_run_mulitple_passing_tests)
   ASSERT(Result.Message.contains("Passed 2/2 tests"));
 }
 
-TEST_CASE(Can_run_passing_and_failing_tests)
+TEST(Can_run_passing_and_failing_tests)
 {
   std::vector<std::unique_ptr<test>> TestCases;
   TestCases.push_back(std::make_unique<this_test_passes>());
@@ -58,7 +58,7 @@ TEST_CASE(Can_run_passing_and_failing_tests)
   ASSERT(Result.Message.contains("Passed 2/3 tests"));
 }
 
-TEST_CASE(Test_reports_name_and_status)
+TEST(Test_reports_name_and_status)
 {
   {
     constexpr this_test_passes PassingTest;
@@ -74,7 +74,7 @@ TEST_CASE(Test_reports_name_and_status)
   }
 }
 
-TEST_CASE(Test_only_reports_first_failure)
+TEST(Test_only_reports_first_failure)
 {
   constexpr this_test_fails FailingTest;
   const auto Result = FailingTest.Run();

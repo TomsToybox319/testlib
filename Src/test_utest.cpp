@@ -15,6 +15,7 @@ class this_test_fails : public test
   constexpr this_test_fails() : test("this_test_fails", __FILE__) {}
   void RunImpl() const override
   {
+    ASSERT_FALSE(1 == 2);
     ASSERT(1 == 2);
     ASSERT(2 == 3);
   }
@@ -69,7 +70,7 @@ TEST_CASE(Test_reports_name_and_status)
     constexpr this_test_fails FailingTest;
     const auto Result = FailingTest.Run();
     ASSERT(Result.Message.contains(
-        "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));
+        "test_utest.cpp::this_test_fails - FAILED\nASSERT(1 == 2)"));
   }
 }
 
@@ -78,7 +79,7 @@ TEST_CASE(Test_only_reports_first_failure)
   constexpr this_test_fails FailingTest;
   const auto Result = FailingTest.Run();
   ASSERT(Result.Message.contains(
-      "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));
-  ASSERT(!Result.Message.contains("2 == 3"));
+      "test_utest.cpp::this_test_fails - FAILED\nASSERT(1 == 2)"));
+  ASSERT_FALSE(Result.Message.contains("2 == 3"));
 }
 

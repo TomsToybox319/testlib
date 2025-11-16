@@ -43,7 +43,9 @@ test::result test::Run() const
   catch (const assertion_error& Error)
   {
     Passed = false;
-    Message = std::format("{} failed on line {}\n", Error.Expr, Error.Line);
+    const auto Call = Error.AssertFalse ? "ASSERT_FALSE" : "ASSERT";
+    Message =
+        std::format("{}({}) failed on line {}\n", Call, Error.Expr, Error.Line);
   }
 
   const char* const ResultStr = Passed ? "PASSED" : "FAILED";

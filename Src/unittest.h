@@ -61,26 +61,25 @@ class test_runner
   {
     bool Passed;
     std::string Message;
-    size_t TestsRun = 0;
     size_t TestsFailed = 0;
     size_t TestsPassed = 0;
+    constexpr size_t TestsRun() const { return TestsFailed + TestsPassed; }
 
     constexpr result() : Passed(true) {}
 
+    // Convert test:;result (individual) to test_runner::result (aggregate)
     constexpr result(const test::result& Rhs)
         : Passed(Rhs.Passed),
           Message(Rhs.Message),
-          TestsRun(1),
           TestsFailed(!Rhs.Passed),
           TestsPassed(Rhs.Passed)
     {
     }
 
-    constexpr result(bool Passed, std::string Message, size_t TestsRun,
-                     size_t TestsFailed, size_t TestsPassed)
+    constexpr result(bool Passed, std::string Message, size_t TestsFailed,
+                     size_t TestsPassed)
         : Passed(Passed),
           Message(Message),
-          TestsRun(TestsRun),
           TestsFailed(TestsFailed),
           TestsPassed(TestsPassed)
     {
@@ -89,7 +88,7 @@ class test_runner
     constexpr result operator+(const result& Rhs) const
     {
       return result(Passed && Rhs.Passed, Message + Rhs.Message,
-                    TestsRun + Rhs.TestsRun, TestsFailed + Rhs.TestsFailed,
+                    TestsFailed + Rhs.TestsFailed,
                     TestsPassed + Rhs.TestsPassed);
     }
 
@@ -109,12 +108,6 @@ class test_runner
   result Run();
 
  private:
-  constexpr result GuardAgainstEmptyTests() const
-  {
-    const bool RunnerHasTests = !mTestCases.empty();
-    return RunnerHasTests ? result(true, "", 0, 0, 0)
-                          : result(false, ZERO_TESTS_ERROR_MSG, 0, 0, 0);
-  }
   std::vector<std::unique_ptr<test>> mTestCases;
 };
 }  // namespace testlib

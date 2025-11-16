@@ -60,13 +60,13 @@ TEST_CASE(Can_run_passing_and_failing_tests)
 TEST_CASE(Test_reports_name_and_status)
 {
   {
-    const this_test_passes PassingTest;
+    constexpr this_test_passes PassingTest;
     const auto Result = PassingTest.Run();
     ASSERT(
         Result.Message.contains("test_utest.cpp::this_test_passes - PASSED"));
   }
   {
-    const this_test_fails FailingTest;
+    constexpr this_test_fails FailingTest;
     const auto Result = FailingTest.Run();
     ASSERT(Result.Message.contains(
         "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));
@@ -75,7 +75,7 @@ TEST_CASE(Test_reports_name_and_status)
 
 TEST_CASE(Test_only_reports_first_failure)
 {
-  const this_test_fails FailingTest;
+  constexpr this_test_fails FailingTest;
   const auto Result = FailingTest.Run();
   ASSERT(Result.Message.contains(
       "test_utest.cpp::this_test_fails - FAILED\n1 == 2"));

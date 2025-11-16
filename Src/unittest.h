@@ -61,10 +61,21 @@ class test_runner
   {
     bool Passed;
     std::string Message;
+    size_t TestsRun = 0;
+    size_t TestsFailed = 0;
+    size_t TestsPassed = 0;
 
-    constexpr result operator+(const result& Rhs)
+    constexpr result operator+(const result& Rhs) const
     {
-      return {Passed && Rhs.Passed, Message + Rhs.Message};
+      return {Passed && Rhs.Passed, Message + Rhs.Message,
+              TestsRun + Rhs.TestsRun, TestsFailed + Rhs.TestsFailed,
+              TestsPassed + Rhs.TestsPassed};
+    }
+
+    constexpr result operator+(const test::result& Rhs) const
+    {
+      return *this +
+             result{Rhs.Passed, Rhs.Message, 1, !Rhs.Passed, Rhs.Passed};
     }
   };
   static constexpr const char ZERO_TESTS_ERROR_MSG[] =
@@ -76,11 +87,7 @@ class test_runner
   }
 
   result Run();
-  std::string WriteReport() const;
-
-  constexpr size_t TestsPassed() const { return mTestsPassed; }
-  constexpr size_t TestsFailed() const { return mTestsFailed; }
-  constexpr size_t TestsRun() const { return mTestsRun; }
+  std::string WriteReport(const result& Result) const;
 
  private:
   constexpr result GuardAgainstEmptyTests() const
@@ -89,13 +96,7 @@ class test_runner
     return RunnerHasTests ? result{true, ""}
                           : result{false, ZERO_TESTS_ERROR_MSG};
   }
-  result RunSingleTest(const test& Test);
   std::vector<std::unique_ptr<test>> mTestCases;
-
-  // Test statistics. Run() initializes them as the tests are run.
-  size_t mTestsFailed = static_cast<size_t>(-1);
-  size_t mTestsRun = static_cast<size_t>(-1);
-  size_t mTestsPassed = static_cast<size_t>(-1);
 };
 }  // namespace testlib
 
@@ -149,7 +150,7 @@ class test_runner
     testlib::test_runner Runner(std::move(testlib::Tests)); \
     const auto Report = Runner.Run();                       \
     std::cerr << Report.Message << "\n";                    \
-    return static_cast<int>(Runner.TestsFailed());          \
+    return static_cast<int>(Report.TestsFailed);            \
   }
 
 #endif

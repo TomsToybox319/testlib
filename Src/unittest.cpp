@@ -26,25 +26,10 @@ test::result test::Run() const
   return {Passed, Message};
 }
 
-std::string test_runner::WriteReport() const
+std::string test_runner::WriteReport(const result& Result) const
 {
-  return std::format("Passed {}/{} tests\n", TestsPassed(), TestsRun());
-}
-
-test_runner::result test_runner::RunSingleTest(const test& Test)
-{
-  const auto [Passed, Message] = Test.Run();
-
-  mTestsRun++;
-  if (Passed)
-  {
-    mTestsPassed++;
-  }
-  else
-  {
-    mTestsFailed++;
-  }
-  return {Passed, Message};
+  return std::format("Passed {}/{} tests\n", Result.TestsPassed,
+                     Result.TestsRun);
 }
 
 test_runner::result test_runner::Run()
@@ -52,16 +37,10 @@ test_runner::result test_runner::Run()
   const auto GuardResult = GuardAgainstEmptyTests();
   if (!GuardResult.Passed) return GuardResult;
 
-  mTestsRun = 0;
-  mTestsFailed = 0;
-  mTestsPassed = 0;
+  const auto Result = std::accumulate(
+      mTestCases.begin(), mTestCases.end(), result{true, ""},
+      [](const result& Result, const std::unique_ptr<test>& Test)
+      { return Result + Test->Run(); });
 
-  result Result = {true, ""};
-  for (const auto& Test : mTestCases)
-  {
-    assert(Test.get() != nullptr);
-    Result = Result + RunSingleTest(*Test);
-  }
-
-  return {mTestsFailed == 0, Result.Message + WriteReport()};
+  return {Result.TestsFailed == 0, Result.Message + WriteReport(Result)};
 }

@@ -17,6 +17,10 @@
 #error "ASSERT has already been defined!"
 #endif
 
+#ifdef ASSERT_FALSE
+#error "ASSERT_FALSE has already been defined!"
+#endif
+
 namespace testlib
 {
 class test
@@ -45,9 +49,14 @@ class test
 class assertion_error
 {
  public:
-  assertion_error(const char* Expr, int Line) : Expr(Expr), Line(Line) {}
+  constexpr assertion_error(const char* Expr, int Line, bool AssertFalse)
+      : Expr(Expr), Line(Line), AssertFalse(AssertFalse)
+  {
+  }
+
   const char* const Expr;
   const int Line;
+  const bool AssertFalse;
 };
 
 // This contains all the tests, which are implicitly registered in their
@@ -145,10 +154,16 @@ class test_runner
 // anything here. Instead we set a member variable to tell whether it
 // passed. In the future, we'll probably need an exception so we can abort
 // execution at the first failure
-#define ASSERT(Expr)                        \
-  if (!(Expr))                              \
-  {                                         \
-    throw assertion_error(#Expr, __LINE__); \
+#define ASSERT(Expr)                               \
+  if (!(Expr))                                     \
+  {                                                \
+    throw assertion_error(#Expr, __LINE__, false); \
+  }
+
+#define ASSERT_FALSE(Expr)                        \
+  if ((Expr))                                     \
+  {                                               \
+    throw assertion_error(#Expr, __LINE__, true); \
   }
 
 // This wraps main

@@ -9,8 +9,8 @@
 #error "UNIT_TEST_INIT has already been defined!"
 #endif
 
-#ifdef TEST_CASE
-#error "TEST_CASE has already been defined!"
+#ifdef TEST
+#error "TEST has already been defined!"
 #endif
 
 #ifdef ASSERT
@@ -130,7 +130,7 @@ class test_runner
 // extra adding-struct.)
 // Finally, we end with the signature of the run function, so the caller can
 // treat this as a method and write the test afterward
-#define TEST_CASE(TestName)                                                  \
+#define TEST(TestName)                                                       \
   class testlib_##TestName : public testlib::test                            \
   {                                                                          \
    public:                                                                   \

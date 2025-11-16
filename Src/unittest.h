@@ -65,17 +65,37 @@ class test_runner
     size_t TestsFailed = 0;
     size_t TestsPassed = 0;
 
+    constexpr result() : Passed(true) {}
+
+    constexpr result(const test::result& Rhs)
+        : Passed(Rhs.Passed),
+          Message(Rhs.Message),
+          TestsRun(1),
+          TestsFailed(!Rhs.Passed),
+          TestsPassed(Rhs.Passed)
+    {
+    }
+
+    constexpr result(bool Passed, std::string Message, size_t TestsRun,
+                     size_t TestsFailed, size_t TestsPassed)
+        : Passed(Passed),
+          Message(Message),
+          TestsRun(TestsRun),
+          TestsFailed(TestsFailed),
+          TestsPassed(TestsPassed)
+    {
+    }
+
     constexpr result operator+(const result& Rhs) const
     {
-      return {Passed && Rhs.Passed, Message + Rhs.Message,
-              TestsRun + Rhs.TestsRun, TestsFailed + Rhs.TestsFailed,
-              TestsPassed + Rhs.TestsPassed};
+      return result(Passed && Rhs.Passed, Message + Rhs.Message,
+                    TestsRun + Rhs.TestsRun, TestsFailed + Rhs.TestsFailed,
+                    TestsPassed + Rhs.TestsPassed);
     }
 
     constexpr result operator+(const test::result& Rhs) const
     {
-      return *this +
-             result{Rhs.Passed, Rhs.Message, 1, !Rhs.Passed, Rhs.Passed};
+      return *this + result(Rhs);
     }
   };
   static constexpr const char ZERO_TESTS_ERROR_MSG[] =
@@ -87,14 +107,13 @@ class test_runner
   }
 
   result Run();
-  std::string WriteReport(const result& Result) const;
 
  private:
   constexpr result GuardAgainstEmptyTests() const
   {
     const bool RunnerHasTests = !mTestCases.empty();
-    return RunnerHasTests ? result{true, ""}
-                          : result{false, ZERO_TESTS_ERROR_MSG};
+    return RunnerHasTests ? result(true, "", 0, 0, 0)
+                          : result(false, ZERO_TESTS_ERROR_MSG, 0, 0, 0);
   }
   std::vector<std::unique_ptr<test>> mTestCases;
 };

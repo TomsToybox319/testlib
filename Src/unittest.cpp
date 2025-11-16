@@ -6,6 +6,22 @@
 
 using namespace testlib;
 
+namespace
+{
+std::string WriteReport(const test_runner::result& Result)
+{
+  return std::format("Passed {}/{} tests\n", Result.TestsPassed,
+                     Result.TestsRun);
+}
+
+constexpr test_runner::result Finalize(const test_runner::result& Result)
+{
+  test_runner::result FinalResult = Result;
+  FinalResult.Message += WriteReport(Result);
+  return FinalResult;
+}
+}  // namespace
+
 test::result test::Run() const
 {
   std::string Message{};
@@ -26,21 +42,15 @@ test::result test::Run() const
   return {Passed, Message};
 }
 
-std::string test_runner::WriteReport(const result& Result) const
-{
-  return std::format("Passed {}/{} tests\n", Result.TestsPassed,
-                     Result.TestsRun);
-}
-
 test_runner::result test_runner::Run()
 {
   const auto GuardResult = GuardAgainstEmptyTests();
   if (!GuardResult.Passed) return GuardResult;
 
   const auto Result = std::accumulate(
-      mTestCases.begin(), mTestCases.end(), result{true, ""},
+      mTestCases.begin(), mTestCases.end(), result(),
       [](const result& Result, const std::unique_ptr<test>& Test)
       { return Result + Test->Run(); });
 
-  return {Result.TestsFailed == 0, Result.Message + WriteReport(Result)};
+  return Finalize(Result);
 }

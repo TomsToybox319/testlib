@@ -1,7 +1,4 @@
 #include "unittest.h"
-// samsung t2 shield
-// t7
-//
 
 #include <cassert>
 #include <format>

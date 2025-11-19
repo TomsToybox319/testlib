@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <vector>
 
 #ifdef UNIT_TEST_INIT
@@ -21,6 +22,14 @@
 #error "ASSERT_FALSE has already been defined!"
 #endif
 
+#ifdef EXPECT
+#error "EXPECT has already been defined!"
+#endif
+
+#ifdef EXPECT_FALSE
+#error "EXPECT_FALSE has already been defined!"
+#endif
+
 namespace testlib
 {
 class test
@@ -28,8 +37,13 @@ class test
  public:
   struct result
   {
-    const bool Passed;
-    const std::string Message;
+    bool Passed = true;
+    std::string Message;
+
+    constexpr result operator+(const result& Rhs) const
+    {
+      return {Passed && Rhs.Passed, Message + Rhs.Message};
+    }
   };
 
   constexpr test(const char* Name, const char* Filename)
@@ -37,26 +51,22 @@ class test
   {
   }
   constexpr virtual ~test() = default;
-  result Run() const;
+  result Run();
 
   const char* const Name;
   const char* const Filename;
 
  protected:
-  constexpr virtual void RunImpl() const = 0;
+  void AssertImpl(bool value, const char* Expr, int Line, const char* Macro,
+                  bool ThrowOnFail);
+  constexpr virtual void RunImpl() = 0;
+  result TestImpl_Result;
 };
 
 class assertion_error
 {
  public:
-  constexpr assertion_error(const char* Expr, int Line, bool AssertFalse)
-      : Expr(Expr), Line(Line), AssertFalse(AssertFalse)
-  {
-  }
-
-  const char* const Expr;
-  const int Line;
-  const bool AssertFalse;
+  constexpr assertion_error() = default;
 };
 
 // This contains all the tests, which are implicitly registered in their
@@ -135,7 +145,7 @@ class test_runner
   {                                                                          \
    public:                                                                   \
     constexpr testlib_##TestName() : test(#TestName, __FILE__) {}            \
-    void RunImpl() const override;                                           \
+    void RunImpl() override;                                                 \
   };                                                                         \
   namespace                                                                  \
   {                                                                          \
@@ -148,23 +158,20 @@ class test_runner
   };                                                                         \
   static testlib_registrar_##TestName testlib_registrar_instance_##TestName; \
   }                                                                          \
-  void testlib_##TestName::RunImpl() const
+  void testlib_##TestName::RunImpl()
 
 // Because of how things are called, it doesn't make sense to "return"
-// anything here. Instead we set a member variable to tell whether it
-// passed. In the future, we'll probably need an exception so we can abort
-// execution at the first failure
-#define ASSERT(Expr)                               \
-  if (!(Expr))                                     \
-  {                                                \
-    throw assertion_error(#Expr, __LINE__, false); \
-  }
+// anything here. Instead we set a member variable to tell whether the test
+// passed.
+#define ASSERT(Expr) AssertImpl((Expr), #Expr, __LINE__, "ASSERT", true);
 
-#define ASSERT_FALSE(Expr)                        \
-  if ((Expr))                                     \
-  {                                               \
-    throw assertion_error(#Expr, __LINE__, true); \
-  }
+#define ASSERT_FALSE(Expr) \
+  AssertImpl(!(Expr), #Expr, __LINE__, "ASSERT_FALSE", true);
+
+#define EXPECT(Expr) AssertImpl((Expr), #Expr, __LINE__, "EXPECT", false)
+
+#define EXPECT_FALSE(Expr) \
+  AssertImpl(!(Expr), #Expr, __LINE__, "EXPECT_FALSE", false)
 
 // This wraps main
 #define UNIT_TEST_INIT                                      \

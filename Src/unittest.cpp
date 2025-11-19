@@ -1,6 +1,5 @@
 #include "unittest.h"
 
-#include <cassert>
 #include <format>
 #include <numeric>
 
@@ -31,26 +30,33 @@ constexpr test_runner::result Finalize(const test_runner::result& Result)
 }
 }  // namespace
 
-test::result test::Run() const
+void test::AssertImpl(bool Passed, const char* Expr, int Line,
+                      const char* Macro, bool ThrowOnFail)
 {
-  std::string Message{};
-  bool Passed = true;
+  const auto Message =
+      Passed ? ""
+             : std::format("{}({}) failed on line {}\n", Macro, Expr, Line);
+  TestImpl_Result = TestImpl_Result + result{Passed, Message};
+  if (ThrowOnFail && !Passed)
+  {
+    throw assertion_error();
+  }
+}
 
+test::result test::Run()
+{
   try
   {
     RunImpl();
   }
-  catch (const assertion_error& Error)
+  catch (const assertion_error&)
   {
-    Passed = false;
-    const auto Call = Error.AssertFalse ? "ASSERT_FALSE" : "ASSERT";
-    Message =
-        std::format("{}({}) failed on line {}\n", Call, Error.Expr, Error.Line);
   }
 
-  const char* const ResultStr = Passed ? "PASSED" : "FAILED";
-  Message = std::format("{}::{} - {}\n{}", Filename, Name, ResultStr, Message);
-  return {Passed, Message};
+  const char* const ResultStr = TestImpl_Result.Passed ? "PASSED" : "FAILED";
+  const auto Message = std::format("{}::{} - {}\n{}", Filename, Name, ResultStr,
+                                   TestImpl_Result.Message);
+  return {TestImpl_Result.Passed, Message};
 }
 
 test_runner::result test_runner::Run()

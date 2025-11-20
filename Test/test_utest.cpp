@@ -119,3 +119,5 @@ TEST(Assert_false_fails)
   const auto Result = FailingTest.Run();
   ASSERT(Result.Message.contains("ASSERT_FALSE(true) failed on line"));
 }
+
+UNIT_TEST_INIT

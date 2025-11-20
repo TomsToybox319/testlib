@@ -13,9 +13,12 @@ $CompileOptions = @(
     "/WX"        # Treat warnings as errors
     "/W4"        # Highest warning-level
     "/wd4127"    # Disable "conditional expression is constant" warning
+
+    "/I"         # Include directory
+    "..\Src\" 
 )
 
-cl ..\Src\main.cpp ..\Src\test_utest.cpp ..\Src\unittest.cpp $CompileOptions
+cl ..\Test\test_utest.cpp ..\Src\unittest.cpp $CompileOptions
 $ReturnCode = $LastExitCode
 
 popd

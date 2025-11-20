@@ -30,8 +30,18 @@
 #error "EXPECT_FALSE has already been defined!"
 #endif
 
+#ifdef ASSERT_EQ
+#error "ASSERT_EQ has already been defined!"
+#endif
+
 namespace testlib
 {
+class assertion_error
+{
+ public:
+  constexpr assertion_error() = default;
+};
+
 class test
 {
  public:
@@ -57,16 +67,26 @@ class test
   const char* const Filename;
 
  protected:
-  void AssertImpl(bool value, const char* Expr, int Line, const char* Macro,
+  template <typename T>
+  void AssertImpl(bool Passed, const char* LhsName, const char* RhsName,
+                  int Line, const char* Macro, bool ThrowOnFail, T Lhs, T Rhs)
+  {
+    const auto Message =
+        Passed ? ""
+               : std::format(
+                     "{}({}, {}) failed on line {}.\n  Lhs: {}\n  Rhs: {}\n",
+                     Macro, LhsName, RhsName, Line, Lhs, Rhs);
+    TestImpl_Result = TestImpl_Result + result{Passed, Message};
+    if (ThrowOnFail && !Passed)
+    {
+      throw assertion_error();
+    }
+  }
+
+  void AssertImpl(bool Passed, const char* Expr, int Line, const char* Macro,
                   bool ThrowOnFail);
   constexpr virtual void RunImpl() = 0;
   result TestImpl_Result;
-};
-
-class assertion_error
-{
- public:
-  constexpr assertion_error() = default;
 };
 
 // This contains all the tests, which are implicitly registered in their
@@ -163,15 +183,18 @@ class test_runner
 // Because of how things are called, it doesn't make sense to "return"
 // anything here. Instead we set a member variable to tell whether the test
 // passed.
-#define ASSERT(Expr) AssertImpl((Expr), #Expr, __LINE__, "ASSERT", true);
+#define ASSERT(Expr) AssertImpl((Expr), #Expr, __LINE__, "ASSERT", true)
 
 #define ASSERT_FALSE(Expr) \
-  AssertImpl(!(Expr), #Expr, __LINE__, "ASSERT_FALSE", true);
+  AssertImpl(!(Expr), #Expr, __LINE__, "ASSERT_FALSE", true)
 
 #define EXPECT(Expr) AssertImpl((Expr), #Expr, __LINE__, "EXPECT", false)
 
 #define EXPECT_FALSE(Expr) \
   AssertImpl(!(Expr), #Expr, __LINE__, "EXPECT_FALSE", false)
+
+#define ASSERT_EQ(Lhs, Rhs) \
+  AssertImpl((Lhs) == (Rhs), #Lhs, #Rhs, __LINE__, "ASSERT_EQ", true, Lhs, Rhs)
 
 // This wraps main
 #define UNIT_TEST_INIT                                      \

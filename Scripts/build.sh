@@ -9,6 +9,7 @@ CompilerOptions+=" -Wall  -Werror "  # Turn on more compiler warnings and treat 
 CompilerOptions+=" -Weverything" # Warn all of the things!
 CompilerOptions+=" -Wno-c++98-compat" # Don't need C++98 comptability
 CompilerOptions+=" -Wno-padded" # Don't care about padding
+CompilerOptions+=" -Wno-global-constructors" # We need global ctors
 CompilerOptions+=" -std=c++23"   # Compile with C++23 standard                                           
 CompilerOptions+=" -I../Src/"    # Set include directory
 clang++  ../Test/test_utest.cpp ../Src/unittest.cpp $CompilerOptions

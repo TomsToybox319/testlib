@@ -136,15 +136,13 @@ TEST(Assert_eq_reports_values)
 {
   assert_eq FailingTest;
   const auto Result = FailingTest.Run();
-  std::cerr << Result.Message << "\n";
   ASSERT_FALSE(Result.Message.contains("1 == 1"));
   const auto FirstFailure = R"(ASSERT_EQ(1, 2) failed on line 51.
   Lhs: 1
   Rhs: 2
 )";
   ASSERT(Result.Message.contains(FirstFailure));
-  const auto SecondFailure = "ASSERT_EQ(2, 3)";
-  ASSERT_FALSE(Result.Message.contains(SecondFailure));
+  ASSERT_FALSE(Result.Message.contains("ASSERT_EQ(2, 3)"));
 }
 
 UNIT_TEST_INIT

@@ -5,7 +5,7 @@ mkdir -p Build
 cd Build
 
 CompilerOptions="-o main"  # Output file will be named "main"
-CompilerOptions+=" -Wall -Wextra -Werror -Wconversions"  # Turn on more compiler warnings 
+CompilerOptions+=" -Wall -Wextra -Werror -Wconversion"  # Turn on more compiler warnings 
                                            # and treat them as errors
 CompilerOptions+=" -std=c++23"   # Compile with C++23 standard                                           
 CompilerOptions+=" -I../Src/"    # Set include directory

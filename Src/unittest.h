@@ -1,6 +1,7 @@
 #ifndef TOM_UNITTEST_H
 #define TOM_UNITTEST_H
 
+#include <concepts>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -67,10 +68,12 @@ class test
   const char* const Filename;
 
  protected:
-  template <typename T>
-  void AssertImpl(bool Passed, const char* LhsName, const char* RhsName,
-                  int Line, const char* Macro, bool ThrowOnFail, T Lhs, T Rhs)
+  template <typename T, typename U>
+    requires std::equality_comparable_with<T, U>
+  void AssertEqImpl(const char* LhsName, const char* RhsName, int Line,
+                    const char* Macro, bool ThrowOnFail, T Lhs, U Rhs)
   {
+    const bool Passed = Lhs == Rhs;
     const auto Message =
         Passed ? ""
                : std::format(
@@ -194,7 +197,7 @@ class test_runner
   AssertImpl(!(Expr), #Expr, __LINE__, "EXPECT_FALSE", false)
 
 #define ASSERT_EQ(Lhs, Rhs) \
-  AssertImpl((Lhs) == (Rhs), #Lhs, #Rhs, __LINE__, "ASSERT_EQ", true, Lhs, Rhs)
+  AssertEqImpl(#Lhs, #Rhs, __LINE__, "ASSERT_EQ", true, Lhs, Rhs)
 
 // This wraps main
 #define UNIT_TEST_INIT                                      \

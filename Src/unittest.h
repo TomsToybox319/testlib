@@ -60,8 +60,8 @@ class test
  public:
   struct result
   {
-    std::string Message;
     bool Passed = true;
+    std::string Message;
 
     constexpr result operator+(const result& Rhs) const
     {

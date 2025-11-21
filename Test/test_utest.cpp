@@ -56,6 +56,21 @@ class assert_eq : public test
   }
 };
 
+class assert_ne : public test
+{
+ public:
+  constexpr assert_ne() : test("assert_ne", __FILE__) {}
+  void RunImpl() override
+  {
+    EXPECT_NE(1, 2);
+    EXPECT_NE(1, 1);
+
+    ASSERT_NE(1, 2);
+    ASSERT_NE(1, 1);
+    ASSERT_NE(2, 2);
+  }
+};
+
 TEST(Cannot_run_0_tests)
 {
   test_runner Runner({});
@@ -152,6 +167,25 @@ TEST(Assert_eq_reports_values)
   ASSERT(Result.Message.contains(FirstFailure));
   ASSERT(Result.Message.contains(SecondFailure));
   ASSERT_FALSE(Result.Message.contains("ASSERT_EQ(2, 3)"));
+}
+
+TEST(Assert_ne_reports_values)
+{
+  assert_ne FailingTest;
+  const auto Result = FailingTest.Run();
+  const auto FirstFailure = R"(EXPECT_NE(1, 1) failed on line 66.
+  Lhs: 1
+  Rhs: 1
+)";
+
+  const auto SecondFailure = R"(ASSERT_NE(1, 1) failed on line 69.
+  Lhs: 1
+  Rhs: 1
+)";
+  ASSERT(Result.Message.contains(FirstFailure));
+  ASSERT(Result.Message.contains(SecondFailure));
+  ASSERT_FALSE(Result.Message.contains("ASSERT_NE(1, 2)"));
+  ASSERT_FALSE(Result.Message.contains("EXPECT_NE(1, 2)"));
 }
 
 UNIT_TEST_INIT

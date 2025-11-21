@@ -39,6 +39,14 @@
 #error "EXPECT_EQ has already been defined!"
 #endif
 
+#ifdef EXPECT_NE
+#error "EXPECT_NE has already been defined!"
+#endif
+
+#ifdef ASSERT_NE
+#error "ASSERT_NE has already been defined!"
+#endif
+
 namespace testlib
 {
 class assertion_error
@@ -75,9 +83,10 @@ class test
   template <typename T, typename U>
     requires std::equality_comparable_with<T, U>
   void AssertEqImpl(const char* LhsName, const char* RhsName, int Line,
-                    const char* Macro, bool ThrowOnFail, T Lhs, U Rhs)
+                    const char* Macro, bool ThrowOnFail, T Lhs, U Rhs,
+                    bool ExpectedValue = true)
   {
-    const bool Passed = Lhs == Rhs;
+    const bool Passed = (Lhs == Rhs) == ExpectedValue;
     const auto Message =
         Passed ? ""
                : std::format(
@@ -205,6 +214,12 @@ class test_runner
 
 #define EXPECT_EQ(Lhs, Rhs) \
   AssertEqImpl(#Lhs, #Rhs, __LINE__, "EXPECT_EQ", false, Lhs, Rhs)
+
+#define ASSERT_NE(Lhs, Rhs) \
+  AssertEqImpl(#Lhs, #Rhs, __LINE__, "ASSERT_NE", true, Lhs, Rhs, false)
+
+#define EXPECT_NE(Lhs, Rhs) \
+  AssertEqImpl(#Lhs, #Rhs, __LINE__, "EXPECT_NE", false, Lhs, Rhs, false)
 
 // This wraps main
 #define UNIT_TEST_INIT                                      \

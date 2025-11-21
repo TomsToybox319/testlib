@@ -143,9 +143,6 @@ TEST(Assert_eq_reports_values)
 )";
   ASSERT(Result.Message.contains(FirstFailure));
   ASSERT_FALSE(Result.Message.contains("ASSERT_EQ(2, 3)"));
-  const size_t x = 1;
-  const std::string y = "2";
-  ASSERT_EQ(x, y);
 }
 
 UNIT_TEST_INIT

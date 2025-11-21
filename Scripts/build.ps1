@@ -16,6 +16,7 @@ $CompileOptions = @(
 
     "/I"         # Include directory
     "..\Src\" 
+    "/Femain.exe" # Specify output name as main.exe
 )
 
 cl ..\Test\test_utest.cpp ..\Src\unittest.cpp $CompileOptions

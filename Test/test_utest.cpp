@@ -41,6 +41,18 @@ class expect_assertions : public test
   }
 };
 
+class assert_eq : public test
+{
+ public:
+  constexpr assert_eq() : test("assert_eq", __FILE__) {}
+  void RunImpl() override
+  {
+    ASSERT_EQ(1, 1);
+    ASSERT_EQ(1, 2);
+    ASSERT_EQ(2, 3);
+  }
+};
+
 TEST(Cannot_run_0_tests)
 {
   test_runner Runner({});
@@ -118,6 +130,19 @@ TEST(Assert_false_fails)
   assert_false_failure FailingTest;
   const auto Result = FailingTest.Run();
   ASSERT(Result.Message.contains("ASSERT_FALSE(true) failed on line"));
+}
+
+TEST(Assert_eq_reports_values)
+{
+  assert_eq FailingTest;
+  const auto Result = FailingTest.Run();
+  ASSERT_FALSE(Result.Message.contains("1 == 1"));
+  const auto FirstFailure = R"(ASSERT_EQ(1, 2) failed on line 51.
+  Lhs: 1
+  Rhs: 2
+)";
+  ASSERT(Result.Message.contains(FirstFailure));
+  ASSERT_FALSE(Result.Message.contains("ASSERT_EQ(2, 3)"));
 }
 
 UNIT_TEST_INIT

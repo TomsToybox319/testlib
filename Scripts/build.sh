@@ -6,6 +6,7 @@ cd Build
 
 CompilerOptions="-o main"  # Output file will be named "main"
 CompilerOptions+=" -Wall -Wextra -Werror -Wconversion -Wshadow -Wnon-virtual-dtor -pedantic"  # Turn on more compiler warnings 
+CompilerOptions+=" -Weverything" # Warn all of the things!
                                            # and treat them as errors
 CompilerOptions+=" -std=c++23"   # Compile with C++23 standard                                           
 CompilerOptions+=" -I../Src/"    # Set include directory

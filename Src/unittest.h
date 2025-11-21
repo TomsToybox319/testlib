@@ -60,8 +60,8 @@ class test
  public:
   struct result
   {
-    bool Passed = true;
     std::string Message;
+    bool Passed = true;
 
     constexpr result operator+(const result& Rhs) const
     {
@@ -69,8 +69,8 @@ class test
     }
   };
 
-  constexpr test(const char* Name, const char* Filename)
-      : Name(Name), Filename(Filename)
+  constexpr test(const char* NameParam, const char* FilenameParam)
+      : Name(NameParam), Filename(FilenameParam)
   {
   }
   constexpr virtual ~test() = default;

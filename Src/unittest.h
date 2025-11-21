@@ -35,6 +35,10 @@
 #error "ASSERT_EQ has already been defined!"
 #endif
 
+#ifdef EXPECT_EQ
+#error "EXPECT_EQ has already been defined!"
+#endif
+
 namespace testlib
 {
 class assertion_error
@@ -198,6 +202,9 @@ class test_runner
 
 #define ASSERT_EQ(Lhs, Rhs) \
   AssertEqImpl(#Lhs, #Rhs, __LINE__, "ASSERT_EQ", true, Lhs, Rhs)
+
+#define EXPECT_EQ(Lhs, Rhs) \
+  AssertEqImpl(#Lhs, #Rhs, __LINE__, "EXPECT_EQ", false, Lhs, Rhs)
 
 // This wraps main
 #define UNIT_TEST_INIT                                      \

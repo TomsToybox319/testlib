@@ -47,6 +47,9 @@ class assert_eq : public test
   constexpr assert_eq() : test("assert_eq", __FILE__) {}
   void RunImpl() override
   {
+    EXPECT_EQ(1, 1);
+    EXPECT_EQ(1, 2);
+
     ASSERT_EQ(1, 1);
     ASSERT_EQ(1, 2);
     ASSERT_EQ(2, 3);
@@ -137,11 +140,17 @@ TEST(Assert_eq_reports_values)
   assert_eq FailingTest;
   const auto Result = FailingTest.Run();
   ASSERT_FALSE(Result.Message.contains("1 == 1"));
-  const auto FirstFailure = R"(ASSERT_EQ(1, 2) failed on line 51.
+  const auto FirstFailure = R"(EXPECT_EQ(1, 2) failed on line 51.
+  Lhs: 1
+  Rhs: 2
+)";
+
+  const auto SecondFailure = R"(ASSERT_EQ(1, 2) failed on line 54.
   Lhs: 1
   Rhs: 2
 )";
   ASSERT(Result.Message.contains(FirstFailure));
+  ASSERT(Result.Message.contains(SecondFailure));
   ASSERT_FALSE(Result.Message.contains("ASSERT_EQ(2, 3)"));
 }
 

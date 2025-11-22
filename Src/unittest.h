@@ -106,8 +106,9 @@ class test
 
   void AssertImpl(bool Passed, const char* Expr, int Line, const char* Macro,
                   bool ThrowOnFail);
-  void AssertNoThrowImpl(const char* Expr, int Line,
-                         const std::optional<std::exception>& Exception);
+  [[noreturn]] void AssertNoThrowImpl(
+      const char* Expr, int Line,
+      const std::optional<std::exception>& Exception);
   constexpr virtual void RunImpl() = 0;
   result TestImpl_Result;
 };
@@ -240,7 +241,8 @@ class test_runner
   catch (...)                               \
   {                                         \
     AssertNoThrowImpl(#Expr, __LINE__, {}); \
-  }
+  }                                         \
+  static_assert(true, "")
 
 // This wraps main
 #define UNIT_TEST_INIT                                      \

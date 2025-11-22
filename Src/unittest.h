@@ -4,6 +4,7 @@
 #include <concepts>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <vector>
 
@@ -45,6 +46,10 @@
 
 #ifdef ASSERT_NE
 #error "ASSERT_NE has already been defined!"
+#endif
+
+#ifdef ASSERT_NO_THROW
+#error "ASSERT_NO_THROW has already been defined!"
 #endif
 
 namespace testlib
@@ -101,6 +106,9 @@ class test
 
   void AssertImpl(bool Passed, const char* Expr, int Line, const char* Macro,
                   bool ThrowOnFail);
+  [[noreturn]] void AssertNoThrowImpl(
+      const char* Expr, int Line,
+      const std::optional<std::exception>& Exception);
   constexpr virtual void RunImpl() = 0;
   result TestImpl_Result;
 };
@@ -220,6 +228,21 @@ class test_runner
 
 #define EXPECT_NE(Lhs, Rhs) \
   AssertEqImpl(#Lhs, #Rhs, __LINE__, "EXPECT_NE", false, Lhs, Rhs, false)
+
+#define ASSERT_NO_THROW(Expr)               \
+  try                                       \
+  {                                         \
+    (Expr);                                 \
+  }                                         \
+  catch (const std::exception& ex)          \
+  {                                         \
+    AssertNoThrowImpl(#Expr, __LINE__, ex); \
+  }                                         \
+  catch (...)                               \
+  {                                         \
+    AssertNoThrowImpl(#Expr, __LINE__, {}); \
+  }                                         \
+  static_assert(true, "")
 
 // This wraps main
 #define UNIT_TEST_INIT                                      \

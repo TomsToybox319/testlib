@@ -188,4 +188,44 @@ TEST(Assert_ne_reports_values)
   ASSERT_FALSE(Result.Message.contains("EXPECT_NE(1, 2)"));
 }
 
+TEST(Assert_no_throw_reports_exception)
+{
+  class assert_no_throw : public test
+  {
+   public:
+    constexpr assert_no_throw() : test("assert_no_throw", __FILE__) {}
+    void RunImpl() override
+    {
+      ASSERT_NO_THROW([]() {}());
+      ASSERT_NO_THROW([]() { throw std::bad_alloc(); }());
+    }
+  };
+
+  assert_no_throw FailingTest;
+  const auto Result = FailingTest.Run();
+  ASSERT_FALSE(Result.Passed);
+  ASSERT(Result.Message.contains("bad_alloc"));
+}
+
+TEST(Assert_no_throw_reports_unknown_exception)
+{
+  class assert_no_throw_unknown : public test
+  {
+   public:
+    constexpr assert_no_throw_unknown()
+        : test("assert_no_throw_unknown", __FILE__)
+    {
+    }
+    void RunImpl() override
+    {
+      ASSERT_NO_THROW([]() {}());
+      ASSERT_NO_THROW([]() { throw 4; }());
+    }
+  };
+  assert_no_throw_unknown FailingTest;
+  const auto Result = FailingTest.Run();
+  ASSERT_FALSE(Result.Passed);
+  ASSERT(Result.Message.contains("Threw unknown exception"));
+}
+
 UNIT_TEST_INIT

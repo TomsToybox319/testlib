@@ -203,9 +203,8 @@ TEST(Assert_no_throw_reports_exception)
 
   assert_no_throw FailingTest;
   const auto Result = FailingTest.Run();
-  std::cerr << Result.Message << "\n";
   ASSERT_FALSE(Result.Passed);
-  ASSERT(Result.Message.contains("bad allocation"));
+  ASSERT(Result.Message.contains("bad_alloc"));
 }
 
 TEST(Assert_no_throw_reports_unknown_exception)

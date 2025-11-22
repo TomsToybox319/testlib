@@ -69,8 +69,8 @@ class test
     }
   };
 
-  constexpr test(const char* Name, const char* Filename)
-      : Name(Name), Filename(Filename)
+  constexpr test(const char* NameParam, const char* FilenameParam)
+      : Name(NameParam), Filename(FilenameParam)
   {
   }
   constexpr virtual ~test() = default;
@@ -131,12 +131,12 @@ class test_runner
     {
     }
 
-    constexpr result(bool Passed, std::string Message, size_t TestsFailed,
-                     size_t TestsPassed)
-        : Passed(Passed),
-          Message(Message),
-          TestsFailed(TestsFailed),
-          TestsPassed(TestsPassed)
+    constexpr result(bool PassedArg, std::string MessageArg,
+                     size_t TestsFailedArg, size_t TestsPassedArg)
+        : Passed(PassedArg),
+          Message(std::move(MessageArg)),
+          TestsFailed(TestsFailedArg),
+          TestsPassed(TestsPassedArg)
     {
     }
 

@@ -64,10 +64,10 @@ test_runner::result test_runner::Run()
   const auto GuardResult = GuardAgainstEmptyTests(mTestCases);
   if (!GuardResult.Passed) return GuardResult;
 
-  const auto Result = std::accumulate(
+  const auto FinalResult = std::accumulate(
       mTestCases.begin(), mTestCases.end(), result(),
       [](const result& Result, const std::unique_ptr<test>& Test)
       { return Result + Test->Run(); });
 
-  return Finalize(Result);
+  return Finalize(FinalResult);
 }

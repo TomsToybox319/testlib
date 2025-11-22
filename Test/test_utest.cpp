@@ -224,6 +224,7 @@ TEST(Assert_no_throw_reports_unknown_exception)
   };
   assert_no_throw_unknown FailingTest;
   const auto Result = FailingTest.Run();
+  std::cerr << Result.Message << "\n";
   ASSERT_FALSE(Result.Passed);
   ASSERT(Result.Message.contains("Threw unknown exception"));
 }

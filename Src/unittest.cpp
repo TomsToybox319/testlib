@@ -43,6 +43,21 @@ void test::AssertImpl(bool Passed, const char* Expr, int Line,
   }
 }
 
+void test::AssertNoThrowImpl(const char* Expr, int Line,
+                             const std::optional<std::exception>& Exception)
+{
+  const auto Message =
+      Exception ? std::format(
+                      "ASSERT_NO_THROW({}) failed on line {}:\n Exception: {}",
+                      Expr, Line, Exception->what())
+                : std::format(
+                      "ASSERT_NO_THROW({}) failed on line {}:\n Threw unknown "
+                      "exception",
+                      Expr, Line);
+  TestImpl_Result = TestImpl_Result + result{false, Message};
+  throw assertion_error();
+}
+
 test::result test::Run()
 {
   try

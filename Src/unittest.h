@@ -52,6 +52,10 @@
 #error "ASSERT_NO_THROW has already been defined!"
 #endif
 
+#ifdef ASSERT_THROWS
+#error "ASSERT_THROWS has already been defined!"
+#endif
+
 namespace testlib
 {
 class assertion_error
@@ -109,6 +113,10 @@ class test
   [[noreturn]] void AssertNoThrowImpl(
       const char* Expr, int Line,
       const std::optional<std::exception>& Exception);
+
+  [[noreturn]] void AssertThrowsImpl(const char* Expr, int Line,
+                                     const char* ExceptionType);
+
   constexpr virtual void RunImpl() = 0;
   result TestImpl_Result;
 };
@@ -242,6 +250,21 @@ class test_runner
   {                                         \
     AssertNoThrowImpl(#Expr, __LINE__, {}); \
   }                                         \
+  static_assert(true, "")
+
+#define ASSERT_THROWS(Expr, Exception)             \
+  try                                              \
+  {                                                \
+    (Expr);                                        \
+    AssertThrowsImpl(#Expr, __LINE__, #Exception); \
+  }                                                \
+  catch (const Exception&)                         \
+  {                                                \
+  }                                                \
+  catch (...)                                      \
+  {                                                \
+    AssertThrowsImpl(#Expr, __LINE__, #Exception); \
+  }                                                \
   static_assert(true, "")
 
 // This wraps main

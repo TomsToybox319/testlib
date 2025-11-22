@@ -228,4 +228,64 @@ TEST(Assert_no_throw_reports_unknown_exception)
   ASSERT(Result.Message.contains("Threw unknown exception"));
 }
 
+TEST(Assert_throws_passes_when_function_throws)
+{
+  class assert_throws : public test
+  {
+   public:
+    constexpr assert_throws() : test("assert_throws", __FILE__) {}
+    void RunImpl() override
+    {
+      ASSERT_THROWS([]() { throw std::bad_alloc(); }(), std::bad_alloc);
+    }
+  };
+  assert_throws FailingTest;
+
+  const auto Result = FailingTest.Run();
+
+  ASSERT(Result.Passed);
+}
+
+TEST(Assert_throws_reports_failure_when_function_doesnt_throw)
+{
+  class assert_throws_fail : public test
+  {
+   public:
+    constexpr assert_throws_fail() : test("assert_throws_fail", __FILE__) {}
+    void RunImpl() override
+    {
+      ASSERT_THROWS([]() {}(), std::bad_alloc);
+    }
+  };
+  assert_throws_fail FailingTest;
+
+  const auto Result = FailingTest.Run();
+
+  ASSERT_FALSE(Result.Passed);
+  ASSERT(Result.Message.contains("ASSERT_THROWS"));
+  ASSERT(Result.Message.contains("did not throw std::bad_alloc"));
+}
+
+TEST(Assert_throws_reports_failure_when_function_throws_different_exception)
+{
+  class assert_throws_fail : public test
+  {
+   public:
+    constexpr assert_throws_fail() : test("assert_throws_fail", __FILE__) {}
+    void RunImpl() override
+    {
+      ASSERT_THROWS([]()
+                    { throw std::runtime_error("Not the right exception"); }(),
+                    std::bad_alloc);
+    }
+  };
+  assert_throws_fail FailingTest;
+
+  const auto Result = FailingTest.Run();
+
+  ASSERT_FALSE(Result.Passed);
+  ASSERT(Result.Message.contains("ASSERT_THROWS"));
+  ASSERT(Result.Message.contains("did not throw std::bad_alloc"));
+}
+
 UNIT_TEST_INIT

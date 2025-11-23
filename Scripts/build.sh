@@ -14,7 +14,7 @@ CompilerOptions+=" -Wno-weak-vtables" # Disable warnings about vtables
 CompilerOptions+=" -std=c++23"   # Compile with C++23 standard                                           
 CompilerOptions+=" -I../Src/"    # Set include directory
 
-clang++ ../Src/unittest.cpp $CompilerOptions -o unittest.o
+clang++ -c ../Src/unittest.cpp $CompilerOptions -o unittest.o
 clang++ ../Test/test_utest.cpp unittest.o -o main $CompilerOptions
 ls 
 

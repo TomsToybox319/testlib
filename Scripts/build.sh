@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -x
 
 mkdir -p Build
 cd Build
@@ -16,6 +17,5 @@ CompilerOptions+=" -I../Src/"    # Set include directory
 
 clang++ -c ../Src/unittest.cpp $CompilerOptions -o unittest.o
 clang++ ../Test/test_utest.cpp unittest.o -o main $CompilerOptions
-ls 
 
 cd ..

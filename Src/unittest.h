@@ -2,6 +2,7 @@
 #define TOM_UNITTEST_H
 
 #include <concepts>
+#include <format>
 #include <iostream>
 #include <memory>
 #include <optional>
